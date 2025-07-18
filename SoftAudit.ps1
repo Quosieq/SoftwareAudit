@@ -1,9 +1,42 @@
 <#
 .SYNOPSIS
-Check PC for installed software and gererate report
+    Audits installed software and generates detailed reports.
+
 .DESCRIPTION
-Check Registry for installed software, spit out name, version, installed date, publisher and install location 
-Also check for any software that might be licensed 
+    Scans Windows registry for installed applications, capturing:
+    - Software names and versions
+    - Installation dates and publishers
+    - Install locations and license indicators
+    Generates reports in multiple formats (TXT, CSV, HTML, XML, JSON).
+
+.PARAMETER ReportType
+    Specifies output format (TXT, CSV, HTML, XML, JSON).
+
+.PARAMETER Formatting
+    Required for HTML/XML reports. Options:
+    - HTML: Table, List
+    - XML: String, Stream
+
+.PARAMETER SaveTo
+    Optional custom directory for report output. Defaults to ./Reports.
+
+.EXAMPLE
+    .\SoftwareAudit.ps1
+    Interactive mode - prompts for report format and location
+
+.EXAMPLE
+    .\SoftwareAudit.ps1 -ReportType CSV -SaveTo C:\Audits
+    Generates CSV report in specified directory
+
+.NOTES
+    Version:        0.1
+    Author:         Quosieq
+    Creation Date:  $(Get-Date -Format 'yyyy-MM-dd')
+    Requirements:   PowerShell 5.1 or later
+    License:        MIT
+
+.LINK
+    Project Repository: https://github.com/Quosieq/SoftwareAudit
 #>
 
 function WriteLog {
@@ -51,20 +84,20 @@ function WriteLog {
         'XML'   {$Source | ConvertTo-Xml -as $Formatting | Out-File -FilePath "$($logFile).xml"}
         'JSON'  {$Source | ConvertTo-Json -AsArray | Out-File -FilePath "$($logFile).json"}
     }
-    Write-Host "Report saved to: $logFile.$($ReportType.Tolower())!" -ForegroundColor Green
+    Write-Host "Report saved to: $logFile.$($ReportType.Tolower())" -ForegroundColor Green
 
     
 }
 
 # Registry paths to check (both 32-bit and 64-bit)
-$regPaths = @(
+$regSoft = @(
     "Registry::HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall",
     "Registry::HKLM\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
 )
 
 $regKeys = Get-ChildItem -Path $regSoft 
 $totalKeys = $regKeys.Count
-$processedKeys = 0
+$processedKeys = n
 $arr =  New-Object System.Collections.ArrayList  
 
 
@@ -141,4 +174,3 @@ while($true){
          Write-Progress -Activity "Saving report" -Completed -Id 2
     }
 }
-
